@@ -261,13 +261,58 @@ public class Admin extends User {
 	}
 	
 	
+	
+	// Adds user to database
+	private void addToDatabase(boolean ad, String name, String pass, double bal) throws Exception {
+		// open the file as both read and write
+		File dataFile = new File(dataBaseFile);
+		FileWriter dataFileIn = new FileWriter(dataBaseFile);
+		Scanner scanFile = new Scanner(dataFile);
+		String alldata = ""; // string for data to write
+		long usrid = 0; // Checks the current user id -- if it does not exist, insert the user here
+		boolean inserted = false; // checks to see if user has been inserted or not
+		String curline; // temp var for line catching
+		// loop through lines
+		while(scanFile.hasNextLine()) {
+			// line catching and splitting
+			curline = scanFile.nextLine();
+			String[] lineSplit = curline.split(",");
+			long id = Long.valueOf(lineSplit[0]);
+			// if the current id is not the same value as usrid, insert the user here
+			if(id != usrid) {
+				if(ad) {
+					alldata += Long.toString(usrid) + "," + name + "," + pass + '\n';
+				}
+				else {
+					alldata += Long.toString(usrid) + "," + name + "," + pass + Double.toString(bal) + '\n';
+				}
+				inserted = true;
+			}
+			// Otherwise just insert the next file
+			else {
+				alldata += curline + "\n";
+			}
+			usrid++;
+		}
+		// Insert at the end if an empty slot wasnt found in the file
+		if(!inserted) {
+			if(ad) {
+				alldata += Long.toString(usrid) + "," + name + "," + pass + '\n';
+			}
+			else {
+				alldata += Long.toString(usrid) + "," + name + "," + pass + Double.toString(bal) + '\n';
+			}			
+		}
+		//write
+		dataFileIn.write(alldata);
+	}
+	
 /***********************************************************************
 *********************** BASIC METHODS 2 ********************************
 ***********************************************************************/
 	
 	// Create user
-	// fucc, might break some of this up later cuuuzz its a little bit of a mess
-	public void createUser() throws IOException {
+	public void createUser() throws Exception {
 		System.out.println("Creating user.");
 		// Initialize scanner
 		Scanner inputScan = new Scanner(System.in);
@@ -294,10 +339,16 @@ public class Admin extends User {
 			bal = getBal(inputScan);
 		}
 		
+		// Creates user in database file
+		addToDatabase(admin,usernm,pw,bal);
+		
 	}
 	
 	
 	
+	
+	
+	// Edits client by opening client menu
 	public void editUser() throws FileNotFoundException {
 		System.out.println("Editing user.");
 		Client client = findClient();
